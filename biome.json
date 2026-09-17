@@ -22,8 +22,22 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "warn"
+      },
+      "complexity": {
+        "noCommaOperator": "info"
+      },
+      "correctness": {
+        "noUnusedFunctionParameters": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "info",
+        "useNodejsImportProtocol": "info"
+      }
     },
+    "includes": [""],
     "domains": {
       "next": "recommended",
       "react": "recommended"
