@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import { Textarea } from "../ui/textarea";
 import {
+  doctorApplicationSchema,
   isAcceptedFileSize,
   isAcceptedFileType,
   MAX_ADDITIONAL_FILES,
@@ -41,24 +42,28 @@ import {
 import { formatFileSize } from "@/utils";
 import { DoctorApplicationData } from "@/types";
 import { useApplyAsDoctor } from "@/hooks";
+import { FetchError } from "ofetch";
 
 export function DoctorApplyForm() {
   const router = useRouter();
   const { mutate: apply, isPending: applyPending } = useApplyAsDoctor();
   const form = useForm({
     defaultValues: {
-      name: "Mir Hussain",
-      email: "drmir@gmail.com",
-      phone: "01912345678",
-      address: "Neptune",
-      specialization: "Cardiologist",
-      licenseNumber: "ABC123",
-      qualifications: "MBBS",
-      experienceYears: "50",
-      consultationFee: "10000",
-      bio: "My life, my rules.",
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      specialization: "",
+      licenseNumber: "",
+      qualifications: "",
+      experienceYears: "",
+      consultationFee: "",
+      bio: "",
       resume: null as File | null,
       additionalFiles: [] as File[],
+    },
+    validators: {
+      onSubmit: doctorApplicationSchema,
     },
     onSubmit: async ({ value }) => {
       const doctorData: DoctorApplicationData = {
@@ -86,9 +91,25 @@ export function DoctorApplyForm() {
           resume: value.resume as File,
           additionalFiles: value.additionalFiles,
         },
-        { onSuccess: (res) => {
-          console.log(res);
-        }, onError: (error) => {} },
+        {
+          onSuccess: (res) => {
+            if (!res.success) {
+              toast.error(res.message || "Server failure.");
+            }
+            toast.success(
+              res.message || "Aplication submited. Please verify your account.",
+            );
+            const params = new URLSearchParams({
+              email: doctorData.user.email,
+            });
+            router.push(`/apply/verify-account?${params.toString()}`);
+          },
+          onError: (error: FetchError) => {
+            const errorMessage =
+              error?.data?.message || error?.message || "Application failure.";
+            toast.error(errorMessage);
+          },
+        },
       );
     },
   });
@@ -464,14 +485,6 @@ export function DoctorApplyForm() {
                         e.preventDefault();
                         const selected = e.target.files?.[0] ?? null;
 
-                        if (
-                          selected &&
-                          (!isAcceptedFileSize(selected.size) ||
-                            !isAcceptedFileType(selected.type))
-                        ) {
-                          field.handleBlur();
-                          return;
-                        }
 
                         field.handleChange(selected);
                         e.target.value = "";
@@ -536,23 +549,13 @@ export function DoctorApplyForm() {
                       name={field.name}
                       onChange={(e) => {
                         const incoming = Array.from(e.target.files ?? []);
-                        field.handleChange([...files, ...incoming]);
 
                         if (incoming.length === 0) {
                           return;
                         }
-
-                        const invalid = incoming.some(
-                          (file) =>
-                            !isAcceptedFileSize(file.size) ||
-                            !isAcceptedFileType(file.type),
-                        );
-
-                        if (!invalid) {
-                          field.handleBlur();
-                          e.target.value = "";
-                          return;
-                        }
+                        
+                        field.handleChange([...files, ...incoming]);
+                        e.target.value = ""
                       }}
                     />
                     {files.length > 0 && (
@@ -599,8 +602,15 @@ export function DoctorApplyForm() {
           </form.Field>
         </FieldGroup>
         <div className="flex justify-end w-full mt-5">
-          <Button type="submit" size="lg">
-            {applyPending ? <> <Spinner/> Submitting</> : "Submit"}
+          <Button type="submit" size="lg" disabled={applyPending}>
+            {applyPending ? (
+              <>
+                {" "}
+                <Spinner /> Submitting
+              </>
+            ) : (
+              "Submit"
+            )}
           </Button>
         </div>
       </form>

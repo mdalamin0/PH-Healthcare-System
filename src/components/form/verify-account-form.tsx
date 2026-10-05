@@ -13,18 +13,24 @@ import { Button } from "../ui/button";
 import { useEffect, useState } from "react";
 import { Field, FieldError, FieldLabel } from "../ui/field";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useVerifyAccount } from "@/hooks";
+import { useVerifyAccount, useVerifyDoctorAccount } from "@/hooks";
 import { toast } from "sonner";
 import { FetchError } from "ofetch";
 import { Spinner } from "../ui/spinner";
 
-const VerfiyForm = () => {
+const VerfiyForm = ({ mode = "patient" }: { mode: "patient" | "doctor" }) => {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const [otp, setOtp] = useState("");
   const [isInvalid, setIsInvalid] = useState(false);
-  const { mutate: verifyAccount, isPending: verifyPending } = useVerifyAccount();
+  const { mutate: verifyPatient, isPending: verifyPatientPending } =
+    useVerifyAccount();
+  const { mutate: verifyDoctor, isPending: verifyDoctorPending } =
+    useVerifyDoctorAccount();
+  const verifyAccount = mode === "doctor" ? verifyDoctor : verifyPatient
+  const verifyPending = mode === "doctor" ? verifyDoctorPending : verifyPatientPending
   const router = useRouter();
+
   useEffect(() => {
     if (!email) {
       router.push("/");
@@ -48,7 +54,13 @@ const VerfiyForm = () => {
           toast.error("Verify Failed. Please try again.");
         }
 
+        if(mode === "doctor"){
+          toast.success("Verification Successful, Please wait for admin approve.");
+          router.push("/")
+        }
+
         toast.success("Successfully Verify Your Account.");
+        router.push("/")
       },
       onError: (error: FetchError) => {
         const errorMessage =
@@ -59,7 +71,6 @@ const VerfiyForm = () => {
       },
     });
   };
-
 
   return (
     <Card>
@@ -111,9 +122,16 @@ const VerfiyForm = () => {
         </form>
       </CardContent>
       <CardFooter>
-        <Button>Resend</Button>
+        <Button variant={"outline"}>Resend</Button>
         <Button disabled={verifyPending} form="otp-form" type="submit">
-          {verifyPending ? <> <Spinner/> Submitting </> : "Submit"}
+          {verifyPending ? (
+            <>
+              {" "}
+              <Spinner /> Submitting{" "}
+            </>
+          ) : (
+            "Submit"
+          )}
         </Button>
       </CardFooter>
     </Card>

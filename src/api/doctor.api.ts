@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import { DoctorApplicationPayload } from "@/types";
+import { ApiResponse, ApproveDoctorPayload, Doctor, DoctorApplicationPayload, DoctorParams, VerifyAccountPayload } from "@/types";
 
 export const applyAsDoctor = (payload: DoctorApplicationPayload) => {
   const formData = new FormData();
@@ -9,5 +9,30 @@ export const applyAsDoctor = (payload: DoctorApplicationPayload) => {
     formData.append("additionalFiles", file);
   }
 
- return apiClient("/doctor/apply-as-doctor", { method: "POST", body: formData });
+  return apiClient("/doctor/apply-as-doctor", {
+    method: "POST",
+    body: formData,
+  });
 };
+
+export const verifyDoctorAccount = (payload: VerifyAccountPayload) => {
+  return apiClient("/doctor/apply-as-doctor/verify-email", {
+    method: "POST",
+    body: payload,
+  });
+};
+
+
+export const getAllDoctors = (params: DoctorParams) => {
+  return apiClient<ApiResponse<Doctor[]>>("/doctor/all-doctors", {
+    params,
+  });
+}
+
+
+export const approveDoctor = (payload: ApproveDoctorPayload) => {
+  return apiClient("/doctor/aprove-doctor", {
+    method: "POST",
+    body: payload,
+  });
+}

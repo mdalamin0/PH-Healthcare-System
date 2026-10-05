@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { Spinner } from "../ui/spinner";
 import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
 import Link from "next/link";
+import { FetchError } from "ofetch";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -26,8 +27,8 @@ const LoginForm = () => {
 
   const form = useForm({
     defaultValues: {
-      email: "superadmin@gmail.com",
-      password: "Super@admin12345",
+      email: "",
+      password: "",
     },
     validators: {
       onSubmit: loginSchema,
@@ -42,9 +43,10 @@ const LoginForm = () => {
           toast.success("Login Successfull!");
           router.push("/");
         },
-        onError: (err) => {
-          toast.error(err.message);
-          console.log(err);
+        onError: (error: FetchError) => {
+         const errorMessage =
+           error?.data?.message || error?.message || "Authorization failure";
+         toast.error(errorMessage);
         },
       });
     },
