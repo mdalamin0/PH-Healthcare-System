@@ -52,8 +52,8 @@ const DoctorApprovalTable = ({ handleReview, handlePageChange, ...params }: Prop
                     <p className="font-medium">No doctors found</p>
                     <p className="max-w-sm text-sm text-muted-foreground">
                       {params.searchTerm
-                        ? `No results for "${params.searchTerm}". Try a different name or email.`
-                        : "There are no doctors in this view yet."}
+                        ? `No results for "${params.searchTerm}". Search a different name or email.`
+                        : "Here are no doctors in this view yet."}
                     </p>
                   </div>
                 </TableCell>
